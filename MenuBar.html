@@ -1,0 +1,306 @@
+<!DOCTYPE HTML> 
+<!-- DOCTYPE HTML is required for IE8 'standards mode -->
+<html>
+<head>
+<title>Better MenuBar</title>
+<link rel="stylesheet" href="css/better.css" type="text/css"> 
+<style type="text/css">  
+	.button { 
+		background-color: #EEEEEE;
+		border: 1px solid black; 
+		font-size: 10pt;
+	}
+	#actionList li { 
+		padding: 2px 4px 3px;
+	}
+	
+</style>
+<!-- Add JSON support to IE  -->
+<script src="js/json2-min.js"></script> 
+
+<script src="js/menubar.js"></script> 
+
+<script src="js/contextmenu.js"></script> 
+
+<script src="js/betterutils.js"></script> 
+
+</head>
+ <!-- Have to override the oncontextmenu event here for custom contextmenu to work in FF -->
+<body style="margin-left:0px;margin-top:0px;" oncontextmenu="return false;">
+
+<!-- Your menubar is rendered inside this div  -->
+<div id="menubarDiv" style="height:63px;width:1000px;display:block;"> </div>
+
+<p>This page builds a <code>MenuBar</code> javascript object and then 'renders' it as HTML inside a DIV tag in this web page.</p>
+<p>A MenuBar contains a sequence of Menus, which are 'tree like' structures.  Menus can contain other Menus, 'More Menus' and Menu Items. </p>
+
+<ol>
+<li><code>Menus</code> act as <i>containers</i> for other Menus or Items. When a Menu is clicked it expands its list of 'children' on the level below.  
+</li>
+<li><code>More... Menus</code> can only contain Menu Items. When a More Menu is clicked it either expands or contracts its list of 'children' vertically.  
+</li>
+<li><code>Menu Items</code> represent the 'leaves' of the tree. Instead of expanding when clicked they 'do something' (link to another page or call a javscript function). 
+</li>
+</ol>
+<b>Note:</b> 
+<ul>
+<li>This MenuBar provides a sort of 'breadcrumb trail' leaving each level expanded as you click down through the levels of Menus.
+</li>
+<li>A Menu object can be <i>extended</i> using Javascripts 'prototype' inheritance. This is how the 'More' Menu works.  
+</li>
+<li>This MenuBar provides 'sensible' ids for each Menu and Item derived from the descriptive text inside each Menu. 
+For example the <code>id</code> of the  Outbound menu inside the Service Center menu inside the Operations menu is 
+<code>"Operations_Service Center_Outbound"</code>. 
+</li>
+<li>A <code>MenuBar</code> provides functions that allow you to 'find','open' or 'close' a Menu by either its unique id or the Text it displays. 
+</li>
+<li>A <code>MenuBarRenderer</code>  builds the HTML (DOM) that represents the current state of the MenuBar in a browser. 
+Typically <i>only</i> the currently expanded/visible parts of the MenuBar are rendered, which makes for a faster response time.  
+</li>
+<li>A <code>MenuBarController</code> handles the events (clicks) from the DOM and updates the state of the Menus in the MenuBar accordingly.
+</li>
+<li>A <code>ContextMenu</code> handles the right click (events) from the DOM, over Menus and MenuItems in the MenuBar. 
+The user can 'hide' menus and items they don't use and 'save' the current state of their menubar.  
+</li>
+</p>
+<p>It supports CSS styling, different menu item widths and onclick functions.</p>
+<p>The menu model can be dynamically changed and persisted to <code>JSON</code>: </p>
+<ol id="actionList">  
+<li>Expand the Customer > Account menu and then click this button &nbsp; <button class="button" onclick="MENUBAR.hideMenu('Customer');">hide Customer</button> to hide the "Customer" menus. 
+</li>
+
+<li>Click this button &nbsp;<button class="button" onclick="MENUBAR.selectMenu('Operations_Service Center_Outbound_More...');">expand Menus</button> to 'expand' the "Operations" > "Service Center" > "Outbound" > "More..." menu. 
+</li>
+<li>Click this button  &nbsp;<button class="button" onclick="findParentMenus('Break Trailers');">find Parents</button> to find the parent menus of the 'Break Trailers' menu item. 
+</li>
+<li>Click this button &nbsp;<button class="button" onclick="menubarToJSON();">to JSON</button>  to convert the current MenuBar to JSON notation in the javascript console. 
+</li>
+<li>Click this button &nbsp;<button class="button" onclick="MENUBAR.clickMenu('Home_Site Search');">click Site Search</button>  to activate a menu item from javascript. Notice that this works 
+even if the 'Site Search' menu is not currently visible and even if the MenuBar is collapsed.
+</li>
+<li>Click this button &nbsp;<button class="button" onclick="MENUBAR.disable();">to Disable</button> the MenuBar 
+and this button &nbsp;<button class="button" onclick="MENUBAR.enable();">to Enable</button> it again. 
+</li>
+<li>Click this button &nbsp;<button class="button" onclick="displayHiddenMenuIds();">Hidden Menu Ids</button> to display all the hidden Menu ids.
+</li>
+
+<li>Click this button &nbsp;<button class="button" onclick="MENUBAR.saveOptions();">Save MenuBar</button> to save the current MenuBar options. 
+
+<li>Click this button &nbsp;<button class="button" onclick="MENUBAR.loadOptions();">Load MenuBar</button> to load the last saved MenuBar. 
+
+<li>Click this button &nbsp;<button class="button" onclick="MENUBAR.fromJSON(LOADME);">Load from JSON</button> to load a new MenuBar from its JSON string.
+
+<li>Click this button &nbsp;<button class="button" onclick="MENUBAR.startBusy('Updating',true);">Start</button> to start the MenuBar 'busy' indicator and the button below &nbsp;<div style="position:absolute;z-index:+16;"><button class="button" onclick="MENUBAR.stopBusy();">Stop</button></div> to clear it.
+
+</ol>
+
+
+<script type="text/javascript"> 
+<!-- 
+/**
+ * Example of how to build the MenuBar model in Javascript.
+ * Usually you would generate JSON on the server side and load a MenuBar from it!
+ * 
+ * Create nested Menus with an (optional) parent Menu. 
+ * var menu1 = new Menu(text,parentMenu,width); 
+ *
+ * Add MenuItems (with an href URL OR onclick function) to Menus or MoreMenus. 
+ * //If the 4th parameter is a 'string', it is used as a URL to go to
+ * var menuitem1 = new MenuItem(text,parentMenu,width,URLString);  
+ * //If the 4th parameter is an Object with an 'onclick' property, it is used as the onclick function 
+ * var menuitem2 = new MenuItem(text,parentMenu,width,{"onclick":"popupSiteSearch();"});
+ *
+ * Add each top-level Menu to the MenuBar's Array of children. 
+ * Create a MenuBar instance, with a 'name' and Array of child Menus. 
+ */
+function  buildMyMenuBarModel(){
+	
+	var menu1 = new Menu('Home',null,'60px');
+	var item1_0 = new MenuItem('Front Page',menu1,'100px',{"url":"http://tctsj.con-way.com"});  //test url
+	var item1_1 = new MenuItem('Site Search',menu1,'120px',{"onclick":"popupSiteSearch();"});  //test onclick
+	var item1_2 = new MenuItem('Help',menu1,'60px',null);   //test null
+	
+	var menu2 = new Menu('Customer',null,'100px');
+	var item2_1 = new MenuItem('Search',menu2,'90px');    //test undefined
+	var menu2_2 = new Menu('Account',menu2,'100px');	
+	var item2_2_1 = new MenuItem('Details',menu2_2,'90px',"#AccountDetails");
+	var item2_2_2 = new MenuItem('Invoicing',menu2_2,'90px',"#AccountInvoicing");
+	var item2_2_3 = new MenuItem('Contacts',menu2_2,'90px');
+	var item2_2_4 = new MenuItem('Aliases',menu2_2,'90px');
+	var item2_2_5 = new MenuItem('Spec Handling',menu2_2,'120px',{"url":"#AccountHandling"});
+	var menu2_3 = new Menu('Request',menu2,'100px');	
+	var item2_3_1 = new MenuItem('Your Requests',menu2_3,'120px',"/webapp/customer/CISRequestList.do");
+	var menu2_4 = new Menu('Financial',menu2,'100px');
+	var item2_4_1 = new MenuItem('AR',menu2_4,'30px');
+	var menu2_5 = new Menu('Structure',menu2,'100px');
+	var menu2_6 = new Menu('Reports',menu2,'100px');
+	var item2_6_1 = new MenuItem('CIS Reports',menu2_6,'120px');
+
+	var menu3 = new Menu('Operations',null,'120px');
+	var menu3_1 = new Menu('Reports',menu3,'80px');	
+	var menu3_2 = new Menu('Service Center',menu3,'120px');	
+	var item3_2_1 = new MenuItem('Delivery Notification',menu3_2,'150px',{"url":"#DeliveryNotification"});
+	var item3_2_2 = new MenuItem('Pickup Request',menu3_2,'120px',{"url":"#PickupRequest"});
+	var menu3_2_3 = new Menu('Inbound',menu3_2,'80px');
+	var item3_2_3_1 = new MenuItem('Planning',menu3_2_3,'100px','#InboundPlanning');
+	var item3_2_3_2 = new MenuItem('Create Trip',menu3_2_3,'100px','#CreateTrip');
+	var item3_2_3_3 = new MenuItem('Admin Routes',menu3_2_3,'120px','#AdminRoutes');
+	var item3_2_3_4 = new MenuItem('Yard Check',menu3_2_3,'100px','#YardCheck');
+	var menu3_2_4 = new Menu('Outbound',menu3_2,'100px');
+	var item3_2_4_1 = new MenuItem('Freight Details',menu3_2_4,'120px','#FreightDetails');
+	var item3_2_4_2 = new MenuItem('Reship Freight',menu3_2_4,'120px','#ReshipFreight');
+	var item3_2_4_3 = new MenuItem('Summaries',menu3_2_4,'100px','#TCON');
+	var item3_2_4_4 = new MenuItem('Break Trailers',menu3_2_4,'120px','#Break Trailers');
+	//MoreMenu is a specialization of a the Menu object
+	var parent = new Menu('More...',null,'80px');  //no parent menu
+	MoreMenu.prototype = parent;
+	var menu3_2_4_5 = new MoreMenu();
+	menu3_2_4.addChild(menu3_2_4_5);
+		
+	var item3_2_4_1 = new MenuItem('Accuracy Check',menu3_2_4_5,'120px','#AccuracyCheck');
+	var item3_2_4_2 = new MenuItem('Hold Trailers',menu3_2_4_5,'120px','#HoldTrailers');
+	
+	var menu3_3 = new Menu('Reference',menu3,'100px');	
+	var item3_3_1 = new MenuItem('Customs',menu3_3,'80px','#Customs');
+	menu3_3.visible = false;    //test hiding a menu and menuitem
+	var menu3_4 = new Menu('Forms',menu3,'80px');	
+	var menu3_5 = new Menu('Flow',menu3,'60px');	
+	var menu3_6 = new Menu('Linehaul',menu3,'80px');	
+	var menu3_7 = new Menu('FAC',menu3,'40px');
+	var menu3_8 = new Menu('Dock Auto',menu3,'100px');
+	var menu3_9 = new Menu('Customs',menu3,'90px');
+	var menu3_10 = new Menu('BOL',menu3,'40px');
+	parent = new Menu('More...',null,'80px');  //no parent menu
+	MoreMenu.prototype = parent;
+	var menu3_11 = new MoreMenu();
+	menu3.addChild(menu3_11);
+	
+	var item3_11_1 = new MenuItem('Corp Security',menu3_11,'120px','#CorpSecurity');
+	var item3_11_2 = new MenuItem('Puerto Rico',menu3_11,'100px','#PuertoRico');
+	
+	var menu4 = new Menu('Sales',null,'70px');
+	var item4_1 = new MenuItem('Reports',menu4,'80px','crm/reports.do');	
+	var item4_2 = new MenuItem('CRM',menu4,'80px','crm/crm.do');
+	var menu5 = new Menu('Financial',null,'90px');
+	var menu5_1 = new Menu('Corrections',menu5,'80px');
+	var item5_2 = new MenuItem('AP',menu5,'30px','financial/accountspayable.do');
+	var item5_3 = new MenuItem('Invoicing',menu5,'90px','financial/invoices.do');
+	var menu6 = new Menu('Location',null,'80px');
+	var item6_1 = new MenuItem('Lookup',menu6,'80px','location/search.do');
+	var menu7 = new Menu('Tools',null,'60px');
+	var item7_1 = new MenuItem('Home',menu7,'60px','supertools/home.do');
+	var item7_2 = new MenuItem('CSR',menu7,'60px','customer/service.do');
+	var menu8 = new Menu('HR',null,'40px');
+	var item8_1 = new MenuItem('Home',menu8,'60px','hr/home.do');
+	var item8_2 = new MenuItem('Retirement',menu8,'90px','hr/retirement.do');
+	var item8_3 = new MenuItem('Benefits',menu8,'80px','hr/benefits.do');
+	var item8_4 = new MenuItem('Payroll',menu8,'70px','hr/payroll.do');
+	var item8_5 = new MenuItem('PeopleSoft',menu8,'100px','peoplesoft/login.do');
+	var menu9 = new Menu('Training',null,'80px');
+	var item9_1 = new MenuItem('Home',menu9,'60px','training/home.do');
+	var item9_2 = new MenuItem('Ops Training',menu9,'120px','training/ops.do');
+	var menu10 = new Menu('Safety',null,'80px');
+	var item10_1 = new MenuItem('Home',menu10,'60px','safety/home.do');
+	var item10_2 = new MenuItem('Risk Mgmt',menu10,'100px','safety/risk.do');
+	var menu11 = new Menu('Pricing',null,'80px');
+	var menu11_1 = new Menu('Agreements',menu11,'100px');	
+	var menu11_2 = new Menu('Reports',menu11,'80px');	
+	var menu11_3 = new Menu('Forms',menu11,'60px');	
+	var item11_4 = new MenuItem('Customer Profile',menu11,'120px','pricing/customer.do');
+	var menu12 = new Menu('Reports',null,'80px');
+	var item12_1 = new MenuItem('A/R Reports',menu12,'100px','reports/ar/home.do');
+	var item12_2 = new MenuItem('B.I Reports',menu12,'100px','reports/bi/home.do');
+	
+	var menuBarChildren = new Array();	
+	menuBarChildren.push(menu1);
+	menuBarChildren.push(menu2);
+	menuBarChildren.push(menu3);
+	menuBarChildren.push(menu4);
+	menuBarChildren.push(menu5);
+	menuBarChildren.push(menu6);
+	menuBarChildren.push(menu7);
+	menuBarChildren.push(menu8);
+	menuBarChildren.push(menu9);
+	menuBarChildren.push(menu10);
+	menuBarChildren.push(menu11);
+	menuBarChildren.push(menu12);
+	
+	var menuBarModel = new MenuBarModel('ConwayMenu',menuBarChildren);
+	return menuBarModel;	
+};
+
+//Build global MENUBAR singleton using the function above as a callback, to build the model.
+//1.You can also pass in a valid JSON string representing the menubar model
+//2.It must be called MENUBAR (all CAPS)!
+var MENUBAR = new MenuBar(buildMyMenuBarModel);
+
+
+//Advanced: find all the 'parent' menus of a menuitem
+function findParentMenus(menuItemText){
+	var menu = MENUBAR.controller.findMenuByText(menuItemText);
+	var parentMenuArray = MENUBAR.controller.findParentMenus(menu);
+	//All this to output them in a 'pretty' way
+	if( parentMenuArray  instanceof Array){
+		var myString = " ";
+		for (var i = 0;i < parentMenuArray.length;i++) {
+			var parent = parentMenuArray[i];
+			myString += parent.text;
+			if(i < (parentMenuArray.length)-1) {
+				myString += ' > ';
+			}
+		}
+		window.status=menu.text+" parents: "+myString;
+	} else {
+		window.status=menu.text+" has no parent Menus!";
+	}
+};
+//Advanced:
+function displayHiddenMenuIds(){
+	var hiddenMenusArray = MENUBAR.controller.getHiddenMenuIds();
+	var myString = '{"hiddenMenuIds":[';
+	for (var i = 0;i < hiddenMenusArray.length;i++) {
+		myString += '{"id":"';
+		myString += hiddenMenusArray[i];
+		myString += '"}';
+		if(i < (hiddenMenusArray.length)-1) {
+			myString += ',';
+		}
+	}
+	myString += "]}";
+	window.status = myString;
+};
+
+function menubarToJSON(){
+	var JSONString = MENUBAR.toJSON();
+	if(typeof console !== 'undefined') {
+		console.log(JSONString);
+	}	
+}
+
+//Confirm that 'Site Search' MenuItem was indeed clicked!
+function popupSiteSearch() {
+	alert('Site Search clicked!');
+};
+
+function setBackgroundColor(elem,color) {
+	if(null!==elem) {
+		elem.style.background=color;
+	}
+};
+//Advanced: JSON representing a different Menubar called "ColorsMenu"	
+var  LOADME = '{"name":"ColorsMenu","children":['+
+			'{"level":1,"sequenceNumber":null,"text":"Colors","menuId":"Colors","parentMenuId":null,"isMenu":true,'+
+				'"children":['+
+				'{"level":1,"sequenceNumber":0,"text":"Orange","menuId":"Colors_Orange","parentMenuId":"Colors","width":"100px","selected":false,"visible":true,"linkURL":null,"onclickFunction":"this.parentNode.style.background=\'Orange\';","isMenuItem":true},'+
+				'{"level":1,"sequenceNumber":1,"text":"Blue","menuId":"Colors_Blue","parentMenuId":"Colors","width":"120px","selected":false,"visible":true,"linkURL":null,"onclickFunction":"alert(\'Blue!\');","isMenuItem":true},'+
+				'{"level":1,"sequenceNumber":2,"text":"Green","menuId":"Colors_Green","parentMenuId":"Colors","width":"100px","selected":false,"visible":true,"linkURL":null,"onclickFunction":"document.getElementById(\'actionList\').style.color=\'Green\';","isMenuItem":true},'+
+				'{"level":1,"sequenceNumber":3,"text":"Yellow","menuId":"Colors_Yellow","parentMenuId":"Colors","width":"60px","selected":false,"visible":true,"linkURL":null,"onclickFunction":"document.body.style.background=\'Yellow\';","isMenuItem":true}'+				
+				'],'+
+			'"width":"60px","selected":false,"visible":true,"isMenu":true}'+
+			'],'+
+			'"collapsed":false,"disabled":false,"fixed":true,"options":{"startingMenuId":"Colors_Orange","hiddenMenuIds":[],"movedMenuIds":[]}}';
+//--> 
+</script>
+
+</body>
+</html>

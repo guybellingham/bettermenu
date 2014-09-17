@@ -1,0 +1,308 @@
+	/* General */
+	body { font-family: verdana, arial, sans-serif; font-size: 10pt; background-color: white; color: black;}
+
+	div.menubarbusy {
+		display:none;
+		position:fixed;
+		left:500px; top:20px;
+		height:20px;
+		background-color: #FFFFFF;
+		cursor: default;
+		font-size: 10pt;
+		font-weight: bold;
+		padding: 2px 2px 2px;
+		text-align: center;
+		z-index: +16;
+	}
+	div.overdiv { 
+		filter: alpha(opacity=75);
+		-moz-opacity: .75;
+		opacity: .75;
+		background-color: #c0c0c0;
+		position: absolute;
+		top: 0px;
+		left: 0px;
+		width: 100%; height: 100%; 
+	}
+	#menubar { 
+		position:absolute;
+		left:0px; top:0px;
+		width:1024px; height:25px;
+		z-index: +2;
+	}
+	#menubar.fixed { 
+		position:fixed;
+	}
+	#menubar span { 
+		border-right: 1px solid black; 
+		border-top: 1px solid black; 
+		border-bottom: 1px solid black; 
+		padding: 2px 2px 2px;
+		text-align: center;
+		width: 80px;
+	}
+	.firstMenu {
+		border-left: 1px solid black; 
+	}
+	.disabled {
+		background-color: #FFFFFF;
+		color: gray;
+	}
+	.level0 {
+		top: 0px;
+		left: 0px;
+	}
+	.level0 span {
+		font-size: 10pt;
+		height: 20px;
+	}
+	.level1 {
+		top: +25px;
+		left: 0px;
+	}
+	.level1 span {
+		font-size: 10pt;
+		height: 20px;
+	}
+	.level2 {
+		top: +25px;
+		left: 0px;
+	}
+	.level2 span {
+		font-size: 10pt;
+		height: 20px;
+	}
+	.level3 {
+		top: +25px;
+		left: 0px;
+	}
+	.level3 span {
+		font-size: 9pt;
+		height: 18px;
+	}
+	.menulist {
+		display: block;
+		position: absolute;
+		float: left;
+		height: 25px;
+		width: 1000px;
+		margin-top: 0px;
+		margin-left: 0px;
+	}
+	
+	.menu {
+		background-color: #E0E0E0;
+		cursor: pointer;
+		position: relative;
+		float: left;
+		z-index: +4;
+	}
+	.menuitem {
+		background-color: #F7F7F7;
+		cursor: pointer;
+		position: relative;
+		float: left;
+		z-index: +4;
+	}
+	.mouseover {
+		background-color: #FFFF00;
+	}
+	.moremenu {
+		background-color: #D3D3D3;
+		cursor: pointer;
+		position: relative;
+		float: left;
+	}
+	.moremenulist {
+		position: absolute;
+		top: +10px;
+		left: -20px;
+		float: left;
+		height: 25px;
+		width: 80px; 
+		z-index: +8;
+	}
+	.moremenulist span {
+		font-size: 9pt;
+		height: 18px;
+		border-left: 1px solid black; 
+		display: block;  
+		float: left;
+		z-index: +8;
+	}
+	.selected {
+		cursor: default;
+		background-color: #FFFFD3;
+	}
+	.contextmenudiv {
+		border: 1px solid blue; 
+		display: none; 
+		position: absolute; 
+		z-index: +32; 
+	}
+	.contextmenu {
+		margin: 0; 
+		padding: 2px; 
+		list-style-type: none; 
+		background-color: #EFEFFF;
+	}
+	.contextmenu a {border: 0 !important;text-decoration: none;}
+	.contextmenu a:hover {text-decoration: underline !important;}
+	.contextmenu .topSep {font-size: 90%; border-top: 1px dashed gray;  margin-top: 2px; padding-top: 2px;}
+
+table.bettertable {
+	color: black;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 10pt;
+	font-style: normal;
+}
+div.tablebusy {
+	display:none;
+	position:fixed;
+	height:20px;
+	background-color: #FFFFFF;
+	cursor: default;
+	font-size: 10pt;
+	font-weight: bold;
+	padding: 2px 2px 2px;
+	text-align: center;
+	z-index: +16;
+}
+table thead th {
+	border:1px solid gray;
+	padding: 3px 3px 2px;
+}
+span.searchContainer {
+	background-color: #FFFFFF;
+	border: 1px solid gray;
+	padding: 2px;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 10pt;
+	font-style: normal;
+	width: 190px;
+	float: right;
+	z-index: +16;
+}
+table.bettertable button {
+	background-color: #FFFFFF;
+	border: 1px solid gray;
+	cursor: pointer;
+	padding: 4px;
+}
+
+th.scrollbarColumn {
+	border: none;
+	padding-top: 0px;
+	padding-left: 0px;
+	padding-right: 0px;
+	padding-bottom: 0px;
+	vertical-align: middle;
+	height: 22px;
+	width: 16px;
+}
+
+table.bettertable input {
+	border: 1px solid #303030;
+}
+table.bettertable input.error {
+	border-color: red;
+}
+table.bettertable input.deleted {
+	border: 1px dashed gray;
+}
+
+.ui-icon {
+	height: 16px;
+	width: 16px;
+}
+a.sortedNot {
+	background: url(../images/ui-icons.png) -128px -16px;
+	cursor: pointer;
+	float: right;
+}
+a.sortedDesc {
+	background: url(../images/ui-icons.png) -64px -32px;
+	cursor: pointer;
+	float: right;
+}
+a.sortedAsc {
+	background: url(../images/ui-icons.png) 0 -32px;
+	cursor: pointer;
+	float: right;
+}
+a.x-close {
+	background: url(../images/ui-icons.png) -96px -128px;
+	border: 1px dotted black;
+	cursor: pointer;
+	float: right;
+}
+a.plus {
+	background: url(../images/ui-icons.png) -32px -128px;	
+	cursor: pointer;
+	float: right;
+	z-index: +16;
+}
+a.minus {
+	background: url(../images/ui-icons.png) -64px -128px;	
+	cursor: pointer;
+	float: right;
+	z-index: +16;
+}
+a.lock {
+	background: url(../images/ui-icons.png) -192px -96px;	
+	cursor: pointer;
+	float: right;
+	z-index: +16;
+}
+a.unlock {
+	background: url(../images/ui-icons.png) -208px -96px;	
+	cursor: pointer;
+	float: right;
+	z-index: +16;
+}
+a.dashedBorder { 
+	border: 1px dashed gray;
+	margin: 1px 2px 2px;
+	padding: 1px 1px 1px;
+}
+table.bettertable tr.row1 {
+	background-color: #FFFFFF;
+}
+table.bettertable tr.row2 {
+	background-color: #CCFFCC;
+}
+table.bettertable tr.selected {
+	font-weight: bold;
+	background-color: #FFFFA0;
+}
+table.bettertable tr.inserted {
+	background-color: #D0D0FF;
+}
+table.bettertable tr.inserted input {
+	border: 1px solid blue;
+} 
+.outera {
+	position:relative;
+	padding:1px 0 22px 0;  
+	margin-bottom: 32px;
+	top:24px;
+}
+.innera {
+	overflow:auto;
+	overflow-x:hidden;
+	background:#FFF;
+}
+.outera thead tr {
+	background-color: #EEE;
+	position:absolute;
+	top:-24px;
+	height:25px;
+	left:0px;
+}
+.outera tfoot tr {
+	background-color: #EEE;
+	position:absolute;
+	bottom:-16px;
+	left:1px;
+	padding: 3px 6px 4px;
+}
